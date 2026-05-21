@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TTS_Kira</string>
+    <string name="app_tagline">MAVLink sniffer for SIYI MK32</string>
+
+    <string name="section_listener">Listener</string>
+    <string name="section_filters">Message filters</string>
+    <string name="section_about">About</string>
+
+    <string name="label_protocol">Protocol</string>
+    <string name="protocol_udp">UDP</string>
+    <string name="protocol_tcp">TCP</string>
+    <string name="protocol_serial">Serial (USB)</string>
+
+    <string name="label_address">Bind / host</string>
+    <string name="label_port">Port</string>
+    <string name="label_baudrate">Baudrate</string>
+    <string name="hint_address_udp">0.0.0.0 (listen on any interface)</string>
+    <string name="hint_address_tcp">192.168.144.12</string>
+    <string name="hint_port">14550</string>
+    <string name="hint_baudrate">57600</string>
+
+    <string name="filter_group_companion">Companion → FC commands</string>
+    <string name="filter_group_battery">Battery and power</string>
+    <string name="filter_group_alerts">Critical alerts (STATUSTEXT)</string>
+    <string name="filter_group_nav">GPS/RTK, EKF and flight mode</string>
+
+    <string name="start_listening">Start listening</string>
+    <string name="stop_listening">Stop listening</string>
+    <string name="open_log">Open log</string>
+
+    <string name="log_title">Live log</string>
+    <string name="log_empty">Waiting for MAVLink frames…</string>
+    <string name="log_clear">Clear</string>
+    <string name="log_pause">Pause</string>
+    <string name="log_resume">Resume</string>
+
+    <string name="notif_channel_name">MAVLink sniffer</string>
+    <string name="notif_channel_description">Background listener for MAVLink frames</string>
+    <string name="notif_title">TTS_Kira</string>
+    <string name="notif_listening">Listening %1$s · %2$d frames</string>
+    <string name="notif_stop_action">Stop</string>
+
+    <string name="toast_listener_started">Listener started</string>
+    <string name="toast_listener_stopped">Listener stopped</string>
+    <string name="toast_invalid_port">Invalid port</string>
+    <string name="toast_invalid_address">Invalid address</string>
+    <string name="toast_no_serial_device">No USB serial device detected</string>
+    <string name="toast_serial_permission_denied">USB serial permission denied</string>
+</resources>

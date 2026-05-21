@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_root"
+    android:fillViewport="true"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- HEADER -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="32sp"
+            android:fontFamily="serif"
+            android:textColor="@color/text_primary"
+            android:letterSpacing="-0.02"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_tagline"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- LISTENER CARD -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                style="@style/Label.Section"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_listener"
+                android:layout_marginBottom="14dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_protocol"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginBottom="6dp"/>
+
+            <RadioGroup
+                android:id="@+id/protocolGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="14dp">
+
+                <RadioButton
+                    android:id="@+id/protoUdp"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/protocol_udp"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/accent"
+                    android:checked="true"/>
+
+                <RadioButton
+                    android:id="@+id/protoTcp"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/protocol_tcp"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/accent"/>
+
+                <RadioButton
+                    android:id="@+id/protoSerial"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/protocol_serial"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/accent"/>
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/labelAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_address"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginBottom="6dp"/>
+
+            <EditText
+                android:id="@+id/etAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_address_udp"
+                android:inputType="text"
+                android:maxLines="1"
+                android:background="@drawable/bg_input"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_tertiary"
+                android:textSize="14sp"
+                android:text="0.0.0.0"
+                android:layout_marginBottom="12dp"/>
+
+            <LinearLayout
+                android:id="@+id/portRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_port"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="6dp"/>
+
+                    <EditText
+                        android:id="@+id/etPort"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_port"
+                        android:inputType="number"
+                        android:maxLines="1"
+                        android:background="@drawable/bg_input"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_tertiary"
+                        android:textSize="14sp"
+                        android:text="14550"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/baudCol"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_baudrate"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="6dp"/>
+
+                    <EditText
+                        android:id="@+id/etBaud"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_baudrate"
+                        android:inputType="number"
+                        android:maxLines="1"
+                        android:background="@drawable/bg_input"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_tertiary"
+                        android:textSize="14sp"
+                        android:text="57600"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- FILTERS CARD -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                style="@style/Label.Section"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_filters"
+                android:layout_marginBottom="10dp"/>
+
+            <CheckBox
+                android:id="@+id/filterCompanion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/filter_group_companion"
+                android:textColor="@color/text_primary"
+                android:buttonTint="@color/accent"
+                android:checked="true"/>
+
+            <CheckBox
+                android:id="@+id/filterBattery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/filter_group_battery"
+                android:textColor="@color/text_primary"
+                android:buttonTint="@color/accent"
+                android:checked="true"/>
+
+            <CheckBox
+                android:id="@+id/filterAlerts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/filter_group_alerts"
+                android:textColor="@color/text_primary"
+                android:buttonTint="@color/accent"
+                android:checked="true"/>
+
+            <CheckBox
+                android:id="@+id/filterNav"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/filter_group_nav"
+                android:textColor="@color/text_primary"
+                android:buttonTint="@color/accent"
+                android:checked="true"/>
+        </LinearLayout>
+
+        <!-- ACTION BUTTONS -->
+        <Button
+            android:id="@+id/btnStart"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/start_listening"
+            android:textColor="@color/text_inverse"
+            android:textStyle="bold"
+            android:letterSpacing="0.04"
+            android:background="@drawable/btn_primary"
+            android:stateListAnimator="@null"
+            android:layout_marginBottom="10dp"/>
+
+        <Button
+            android:id="@+id/btnOpenLog"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="@string/open_log"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/btn_secondary"
+            android:textAllCaps="false"
+            android:stateListAnimator="@null"/>
+    </LinearLayout>
+</ScrollView>

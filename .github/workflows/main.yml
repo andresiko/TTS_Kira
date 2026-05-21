@@ -1,0 +1,56 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute version
+        id: version
+        run: |
+          BUILD_NUMBER=$(git rev-list --count HEAD)
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          VERSION_NAME="1.${BUILD_NUMBER}-${SHORT_SHA}"
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "::notice::Building $VERSION_NAME (build #$BUILD_NUMBER)"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Gradle 8.4
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
+
+      - name: Build signed release APK
+        run: gradle assembleRelease
+
+      - name: Rename APK with version
+        run: |
+          mv app/build/outputs/apk/release/app-release.apk \
+             app/build/outputs/apk/release/TTSKira-${{ steps.version.outputs.version_name }}.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: TTSKira-${{ steps.version.outputs.version_name }}
+          path: app/build/outputs/apk/release/TTSKira-*.apk
+          retention-days: 30
