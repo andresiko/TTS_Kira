@@ -1,31 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.TTSKira" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.NtripMavlink" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/accent</item>
         <item name="colorPrimaryVariant">@color/accent_pressed</item>
-        <item name="colorOnPrimary">@color/text_inverse</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
         <item name="colorSecondary">@color/accent</item>
-        <item name="colorControlActivated">@color/accent</item>
         <item name="android:windowBackground">@color/bg_root</item>
         <item name="android:statusBarColor">@color/bg_root</item>
         <item name="android:navigationBarColor">@color/bg_root</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">sans-serif</item>
-    </style>
-
-    <style name="Heading.Serif">
-        <item name="android:fontFamily">serif</item>
-        <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">-0.015</item>
-    </style>
-
-    <style name="Label.Section">
-        <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:letterSpacing">0.12</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

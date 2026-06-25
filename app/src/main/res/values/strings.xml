@@ -1,50 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TTS_Kira</string>
-    <string name="app_tagline">MAVLink sniffer for SIYI MK32</string>
+    <string name="app_subtitle">RTK + MAVLink monitor · SIYI MK32</string>
+    <string name="version_placeholder">v-</string>
 
-    <string name="section_listener">Listener</string>
-    <string name="section_filters">Message filters</string>
-    <string name="section_about">About</string>
+    <string name="section_configuration">CONFIGURATION</string>
+    <string name="section_status">STATUS</string>
+    <string name="section_log">LOG</string>
+    <string name="flight_controller_label">Flight controller</string>
+    <string name="restore_ip_port_content_description">Restore IP and port</string>
+    <string name="ntrip_caster_label">NTRIP caster</string>
+    <string name="ntrip_hint">user:password@host:2101/MOUNTPOINT</string>
+    <string name="mountpoints_button">Mountpoints ▾</string>
+    <string name="mountpoints_searching">Searching mountpoints…</string>
+    <string name="clear_credentials_button">Clear credentials</string>
+    <string name="connect_button">CONNECT</string>
+    <string name="disconnect_button">DISCONNECT</string>
 
-    <string name="label_protocol">Protocol</string>
-    <string name="protocol_udp">UDP</string>
-    <string name="protocol_tcp">TCP</string>
-    <string name="protocol_serial">Serial (USB)</string>
+    <string name="status_internet">Internet available</string>
+    <string name="status_ntrip">NTRIP caster connected</string>
+    <string name="status_rtcm">Receiving corrections</string>
+    <string name="status_initial_position">Initial drone position received</string>
+    <string name="status_mavlink_sending">Sending GPS_RTCM_DATA to drone</string>
+    <string name="log_placeholder">-</string>
 
-    <string name="label_address">Bind / host</string>
-    <string name="label_port">Port</string>
-    <string name="label_baudrate">Baudrate</string>
-    <string name="hint_address_udp">0.0.0.0 (listen on any interface)</string>
-    <string name="hint_address_tcp">192.168.144.12</string>
-    <string name="hint_port">14550</string>
-    <string name="hint_baudrate">57600</string>
+    <string name="toast_ip_port_restored">IP and port restored</string>
+    <string name="dialog_clear_credentials_title">Clear credentials</string>
+    <string name="dialog_clear_credentials_message">This will remove user:password from the NTRIP field and the whole history. Host and mountpoint are preserved.</string>
+    <string name="dialog_clear_credentials_positive">Clear</string>
+    <string name="toast_credentials_cleared">Credentials cleared</string>
+    <string name="cancel">Cancel</string>
+    <string name="dialog_delete_history_title">Delete history entry</string>
 
-    <string name="filter_group_companion">Companion → FC commands</string>
-    <string name="filter_group_battery">Battery and power</string>
-    <string name="filter_group_alerts">Critical alerts (STATUSTEXT)</string>
-    <string name="filter_group_nav">GPS/RTK, EKF and flight mode</string>
+    <string name="toast_enter_caster_first">Enter the caster address first</string>
+    <string name="toast_invalid_ntrip_format">Invalid NTRIP format</string>
+    <string name="toast_empty_caster_host">Caster host is empty</string>
+    <string name="toast_no_mountpoints">The caster did not return mountpoints</string>
+    <string name="dialog_mountpoints_title">Mountpoints on %1$s</string>
+    <string name="toast_mountpoint_selected">Mountpoint: %1$s</string>
+    <string name="toast_fill_all_fields">Fill in all fields</string>
+    <string name="toast_empty_host_or_mountpoint">Host or mountpoint is empty</string>
 
-    <string name="start_listening">Start listening</string>
-    <string name="stop_listening">Stop listening</string>
-    <string name="open_log">Open log</string>
+    <string name="diagnostic_no_internet_title">No internet on the MK32</string>
+    <string name="diagnostic_no_internet_hint">Check the device 4G or Wi-Fi. The app needs internet access to talk to the caster.</string>
+    <string name="diagnostic_ntrip_failed_title">NTRIP caster is not responding or rejected the connection</string>
+    <string name="diagnostic_ntrip_failed_hint">Check user, password, host and mountpoint in the NTRIP field. Tap “Mountpoints” to see what the caster accepts.</string>
+    <string name="diagnostic_no_rtcm_title">Connected to the caster but no corrections are arriving</string>
+    <string name="diagnostic_no_rtcm_hint">If your mountpoint is VRS/NEAREST, the caster needs a valid drone position first. Wait until the drone has a GPS fix. If it takes too long, try a static base (for example UPNA3M) to rule out the mountpoint.</string>
+    <string name="diagnostic_no_drone_position_title">No drone telemetry is arriving</string>
+    <string name="diagnostic_no_drone_position_hint">Common causes: drone powered off or radio link down, another app (QGC/UniGCS) already owns the port before this one, or wrong FC IP. Make sure this app is opened first and that the FC IP is 192.168.144.12 (restore button).</string>
+    <string name="dialog_diagnostic_title">Checks after CONNECT</string>
+    <string name="dialog_diagnostic_positive">Got it</string>
 
-    <string name="log_title">Live log</string>
-    <string name="log_empty">Waiting for MAVLink frames…</string>
-    <string name="log_clear">Clear</string>
-    <string name="log_pause">Pause</string>
-    <string name="log_resume">Resume</string>
+    <string name="rtcm_base_distance_m"> · Base %1$s%2$d m from drone</string>
+    <string name="rtcm_base_distance_km"> · Base %1$s%2$.1f km from drone</string>
+    <string name="rtcm_mountpoint_type"> · %1$s</string>
+    <string name="rtcm_label_with_kb">Receiving corrections (%1$d KB)%2$s</string>
+    <string name="initial_position_label">Initial position: %1$.5f, %2$.5f</string>
+    <string name="mavlink_sent_count">GPS_RTCM_DATA sent: %1$d</string>
+    <string name="mavlink_send_stopped">Sending stopped — no recent RTCM</string>
 
-    <string name="notif_channel_name">MAVLink sniffer</string>
-    <string name="notif_channel_description">Background listener for MAVLink frames</string>
-    <string name="notif_title">TTS_Kira</string>
-    <string name="notif_listening">Listening %1$s · %2$d frames</string>
-    <string name="notif_stop_action">Stop</string>
+    <string name="notification_channel_name">NTRIP bridge</string>
+    <string name="notification_channel_description">NTRIP to MAVLink bridge status</string>
+    <string name="notification_title">TTS_Kira</string>
+    <string name="notification_stop">Stop</string>
+    <string name="notification_rtk_active">RTK active%1$s</string>
+    <string name="notification_base_m"> · base %1$d m</string>
+    <string name="notification_base_km"> · base %1$.1f km</string>
+    <string name="notification_waiting_position">Waiting for initial drone position…</string>
+    <string name="notification_connecting_caster">Connecting to caster…</string>
+    <string name="notification_no_internet">No internet</string>
 
-    <string name="toast_listener_started">Listener started</string>
-    <string name="toast_listener_stopped">Listener stopped</string>
+    <string name="bubble_fix">● RTK FIX</string>
+    <string name="bubble_no_fix">● RTK —</string>
+
+    <string name="log_connecting">Connecting to %1$s:%2$d…</string>
+    <string name="log_disconnected">Disconnected</string>
+    <string name="log_udp_listening">UDP listening on :%1$d</string>
+    <string name="log_drone_detected">Drone detected — HEARTBEAT MAV_TYPE=%1$d autopilot=%2$d mavlink=v%3$d</string>
+    <string name="log_gcs_heartbeat">GCS HEARTBEAT (type=6) detected — it does not mark the drone</string>
+    <string name="log_mavlink_without_heartbeat">MAVLink traffic detected without a valid HEARTBEAT — waiting</string>
+    <string name="log_initial_position">Initial drone position received: %1$.5f, %2$.5f</string>
+    <string name="log_no_recent_rtcm">No RTCM for &gt;%1$d s — sending to drone stopped</string>
+    <string name="log_udp_error">UDP error: %1$s</string>
+    <string name="log_internet_ok">Internet OK</string>
+    <string name="log_no_internet">No internet: %1$s</string>
+    <string name="log_caster_rejected">Caster rejected: %1$s</string>
+    <string name="log_ntrip_connected">NTRIP caster connected OK</string>
+    <string name="log_gga_sent">GGA sent: %1$.5f, %2$.5f</string>
+    <string name="log_gga_pending">GGA pending — waiting for drone position</string>
+    <string name="log_rtcm_base">RTCM base %1$d: %2$.5f, %3$.5f</string>
+    <string name="log_ntrip_closed">NTRIP connection closed by server</string>
+    <string name="log_ntrip_error">NTRIP error: %1$s</string>
+    <string name="log_mountpoint_info">Mountpoint %1$s: type %2$s · center %3$.5f, %4$.5f</string>
+    <string name="log_mountpoint_missing">Mountpoint \'%1$s\' does not appear in the sourcetable (%2$d available)</string>
+
+    <string name="section_monitor">MAVLINK MONITOR</string>
+    <string name="monitor_enable_label">Show forwarded MAVLink messages</string>
+    <string name="monitor_port_label">Listen port (QGC forwarding)</string>
+    <string name="monitor_open_button">Open monitor</string>
     <string name="toast_invalid_port">Invalid port</string>
-    <string name="toast_invalid_address">Invalid address</string>
-    <string name="toast_no_serial_device">No USB serial device detected</string>
-    <string name="toast_serial_permission_denied">USB serial permission denied</string>
+    <string name="log_monitor_listening">Monitor listening on :%1$d</string>
+    <string name="monitor_title">MAVLink monitor</string>
+    <string name="monitor_pause">Pause</string>
+    <string name="monitor_resume">Resume</string>
+    <string name="monitor_clear">Clear</string>
+    <string name="monitor_export">Export</string>
+    <string name="monitor_export_ok">Log saved</string>
+    <string name="monitor_export_fail">Export failed: %1$s</string>
+    <string name="monitor_empty">-</string>
+    <string name="monitor_waiting">Waiting for MAVLink frames…</string>
+    <string name="monitor_disabled_hint">Monitor is disabled. Enable it on the main screen.</string>
+    <string name="monitor_health_fmt">Frames: %1$d · Loss: %2$.1f%% · HB: %3$s · %4$.0f msg/s · %5$d msg types</string>
 </resources>

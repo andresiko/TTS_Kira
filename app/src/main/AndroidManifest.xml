@@ -3,18 +3,17 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher"
-        android:theme="@style/Theme.TTSKira"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/Theme.NtripMavlink"
         android:supportsRtl="true">
 
         <activity
@@ -25,22 +24,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/usb_device_filter" />
         </activity>
 
         <activity
-            android:name=".LogActivity"
+            android:name=".MonitorActivity"
             android:exported="false"
-            android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity" />
+            android:screenOrientation="portrait" />
 
         <service
-            android:name=".SnifferService"
+            android:name=".NtripMavlinkService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 

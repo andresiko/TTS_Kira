@@ -2,271 +2,509 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_root"
     android:fillViewport="true"
+    android:background="@color/bg_root"
     android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="20dp">
 
-        <!-- HEADER -->
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- ============ HEADER CARD ============ -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textSize="32sp"
-            android:fontFamily="serif"
-            android:textColor="@color/text_primary"
-            android:letterSpacing="-0.02"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_header_card"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:elevation="2dp"
+            android:layout_marginBottom="10dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/app_tagline"
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="24dp"/>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-        <!-- LISTENER CARD -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_name"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="-0.01"
+                        android:textColor="@color/header_title"/>
+
+                    <TextView
+                        android:id="@+id/tvVersion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/version_placeholder"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.05"
+                        android:textColor="@color/header_pill_text"
+                        android:background="@drawable/bg_version_pill"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:layout_marginStart="10dp"/>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_subtitle"
+                    android:textSize="12sp"
+                    android:textColor="@color/header_subtitle"
+                    android:layout_marginTop="2dp"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@mipmap/ic_launcher"
+                android:contentDescription="@null"
+                android:layout_marginStart="10dp"/>
+        </LinearLayout>
+
+        <!-- ============ CARD: CONFIGURACIÓN (colapsable) ============ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_card"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp">
+            android:padding="12dp"
+            android:layout_marginBottom="10dp">
 
-            <TextView
-                style="@style/Label.Section"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/section_listener"
-                android:layout_marginBottom="14dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_protocol"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:layout_marginBottom="6dp"/>
-
-            <RadioGroup
-                android:id="@+id/protocolGroup"
+            <!-- Header colapsable -->
+            <LinearLayout
+                android:id="@+id/configHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="14dp">
-
-                <RadioButton
-                    android:id="@+id/protoUdp"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="@string/protocol_udp"
-                    android:textColor="@color/text_primary"
-                    android:buttonTint="@color/accent"
-                    android:checked="true"/>
-
-                <RadioButton
-                    android:id="@+id/protoTcp"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="@string/protocol_tcp"
-                    android:textColor="@color/text_primary"
-                    android:buttonTint="@color/accent"/>
-
-                <RadioButton
-                    android:id="@+id/protoSerial"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="@string/protocol_serial"
-                    android:textColor="@color/text_primary"
-                    android:buttonTint="@color/accent"/>
-            </RadioGroup>
-
-            <TextView
-                android:id="@+id/labelAddress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_address"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:layout_marginBottom="6dp"/>
-
-            <EditText
-                android:id="@+id/etAddress"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/hint_address_udp"
-                android:inputType="text"
-                android:maxLines="1"
-                android:background="@drawable/bg_input"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_tertiary"
-                android:textSize="14sp"
-                android:text="0.0.0.0"
-                android:layout_marginBottom="12dp"/>
-
-            <LinearLayout
-                android:id="@+id/portRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
 
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginEnd="8dp">
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_port"
+                        android:text="@string/section_configuration"
+                        android:textSize="10sp"
+                        android:letterSpacing="0.18"
+                        android:textColor="@color/text_tertiary"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/configSummary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
-                        android:layout_marginBottom="6dp"/>
-
-                    <EditText
-                        android:id="@+id/etPort"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/hint_port"
-                        android:inputType="number"
-                        android:maxLines="1"
-                        android:background="@drawable/bg_input"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:paddingTop="10dp"
-                        android:paddingBottom="10dp"
-                        android:textColor="@color/text_primary"
-                        android:textColorHint="@color/text_tertiary"
-                        android:textSize="14sp"
-                        android:text="14550"/>
+                        android:layout_marginTop="4dp"
+                        android:visibility="gone"/>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/baudCol"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
+                <ImageView
+                    android:id="@+id/configChevron"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_up"
+                    android:contentDescription="@null"/>
+            </LinearLayout>
+
+            <!-- Contenido colapsable -->
+            <LinearLayout
+                android:id="@+id/configContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone">
+                    android:text="@string/flight_controller_label"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="4dp"/>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_baudrate"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        android:layout_marginBottom="6dp"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp">
 
-                    <EditText
-                        android:id="@+id/etBaud"
-                        android:layout_width="match_parent"
+                    <AutoCompleteTextView
+                        android:id="@+id/etFcIp"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:hint="@string/hint_baudrate"
-                        android:inputType="number"
+                        android:layout_weight="2"
+                        android:hint="192.168.144.12"
+                        android:inputType="text"
                         android:maxLines="1"
+                        android:imeOptions="actionNext"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_tertiary"
+                        android:textSize="14sp"
                         android:background="@drawable/bg_input"
                         android:paddingStart="12dp"
                         android:paddingEnd="12dp"
                         android:paddingTop="10dp"
                         android:paddingBottom="10dp"
+                        android:layout_marginEnd="8dp"
+                        android:completionThreshold="1"
+                        android:dropDownHeight="wrap_content"
+                        android:text="192.168.144.12"/>
+
+                    <EditText
+                        android:id="@+id/etFcPort"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="19856"
+                        android:inputType="number"
+                        android:maxLines="1"
+                        android:imeOptions="actionNext"
                         android:textColor="@color/text_primary"
                         android:textColorHint="@color/text_tertiary"
                         android:textSize="14sp"
-                        android:text="57600"/>
+                        android:background="@drawable/bg_input"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:layout_marginEnd="8dp"
+                        android:text="19856"/>
+
+                    <ImageButton
+                        android:id="@+id/btnResetFc"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_restore"
+                        android:background="@drawable/btn_subtle"
+                        android:contentDescription="@string/restore_ip_port_content_description"
+                        android:scaleType="centerInside"
+                        android:stateListAnimator="@null"/>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ntrip_caster_label"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="4dp"/>
+
+                <AutoCompleteTextView
+                    android:id="@+id/etNtrip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/ntrip_hint"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:imeOptions="actionDone"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_tertiary"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_input"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:completionThreshold="1"
+                    android:dropDownHeight="wrap_content"
+                    android:layout_marginBottom="8dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnMountpoints"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="@string/mountpoints_button"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:textAllCaps="false"
+                        android:background="@drawable/btn_subtle"
+                        android:minHeight="0dp"
+                        android:stateListAnimator="@null"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:layout_marginEnd="6dp"/>
+
+                    <Button
+                        android:id="@+id/btnClearCreds"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="@string/clear_credentials_button"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:textAllCaps="false"
+                        android:background="@drawable/btn_subtle"
+                        android:minHeight="0dp"
+                        android:stateListAnimator="@null"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:layout_marginStart="6dp"/>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- FILTERS CARD -->
+        <!-- ============ BOTÓN CONECTAR ============ -->
+        <Button
+            android:id="@+id/btnConnect"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:text="@string/connect_button"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:letterSpacing="0.08"
+            android:background="@drawable/btn_primary"
+            android:stateListAnimator="@null"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- ============ CARD: ESTADO ============ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_card"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp">
+            android:padding="12dp"
+            android:layout_marginBottom="10dp">
 
             <TextView
-                style="@style/Label.Section"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/section_filters"
+                android:text="@string/section_status"
+                android:textSize="10sp"
+                android:letterSpacing="0.18"
+                android:textColor="@color/text_tertiary"
+                android:textStyle="bold"
                 android:layout_marginBottom="10dp"/>
 
-            <CheckBox
-                android:id="@+id/filterCompanion"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/filter_group_companion"
-                android:textColor="@color/text_primary"
-                android:buttonTint="@color/accent"
-                android:checked="true"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+                <TextView android:id="@+id/checkInternet" android:layout_width="22dp"
+                    android:layout_height="wrap_content" android:text="○"
+                    android:textColor="@color/text_tertiary" android:textSize="18sp"
+                    android:gravity="center"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/status_internet" android:textColor="@color/text_primary"
+                    android:textSize="14sp" android:layout_marginStart="10dp"/>
+            </LinearLayout>
 
-            <CheckBox
-                android:id="@+id/filterBattery"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/filter_group_battery"
-                android:textColor="@color/text_primary"
-                android:buttonTint="@color/accent"
-                android:checked="true"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+                <TextView android:id="@+id/checkNtrip" android:layout_width="22dp"
+                    android:layout_height="wrap_content" android:text="○"
+                    android:textColor="@color/text_tertiary" android:textSize="18sp"
+                    android:gravity="center"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/status_ntrip" android:textColor="@color/text_primary"
+                    android:textSize="14sp" android:layout_marginStart="10dp"/>
+            </LinearLayout>
 
-            <CheckBox
-                android:id="@+id/filterAlerts"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/filter_group_alerts"
-                android:textColor="@color/text_primary"
-                android:buttonTint="@color/accent"
-                android:checked="true"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+                <TextView android:id="@+id/checkRtcm" android:layout_width="22dp"
+                    android:layout_height="wrap_content" android:text="○"
+                    android:textColor="@color/text_tertiary" android:textSize="18sp"
+                    android:gravity="center"/>
+                <TextView android:id="@+id/labelRtcm" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="@string/status_rtcm"
+                    android:textColor="@color/text_primary" android:textSize="14sp"
+                    android:layout_marginStart="10dp"/>
+            </LinearLayout>
 
-            <CheckBox
-                android:id="@+id/filterNav"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/filter_group_nav"
-                android:textColor="@color/text_primary"
-                android:buttonTint="@color/accent"
-                android:checked="true"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+                <TextView android:id="@+id/checkPosition" android:layout_width="22dp"
+                    android:layout_height="wrap_content" android:text="○"
+                    android:textColor="@color/text_tertiary" android:textSize="18sp"
+                    android:gravity="center"/>
+                <TextView android:id="@+id/labelPosition" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="@string/status_initial_position"
+                    android:textColor="@color/text_primary" android:textSize="14sp"
+                    android:layout_marginStart="10dp"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/checkMavlink" android:layout_width="22dp"
+                    android:layout_height="wrap_content" android:text="○"
+                    android:textColor="@color/text_tertiary" android:textSize="18sp"
+                    android:gravity="center"/>
+                <TextView android:id="@+id/labelMavlink" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="@string/status_mavlink_sending"
+                    android:textColor="@color/text_primary" android:textSize="14sp"
+                    android:layout_marginStart="10dp"/>
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- ACTION BUTTONS -->
-        <Button
-            android:id="@+id/btnStart"
+        <!-- ============ CARD: LOG ============ -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="@string/start_listening"
-            android:textColor="@color/text_inverse"
-            android:textStyle="bold"
-            android:letterSpacing="0.04"
-            android:background="@drawable/btn_primary"
-            android:stateListAnimator="@null"
-            android:layout_marginBottom="10dp"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="12dp">
 
-        <Button
-            android:id="@+id/btnOpenLog"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_log"
+                android:textSize="10sp"
+                android:letterSpacing="0.18"
+                android:textColor="@color/text_tertiary"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <ScrollView
+                android:id="@+id/logScroll"
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:background="@drawable/bg_log"
+                android:scrollbars="vertical"
+                android:scrollbarStyle="insideOverlay"
+                android:overScrollMode="ifContentScrolls"
+                android:fillViewport="true">
+
+                <TextView
+                    android:id="@+id/tvLog"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/log_placeholder"
+                    android:textColor="#8FA6B8"
+                    android:textSize="12sp"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="3dp"
+                    android:padding="10dp"
+                    android:textIsSelectable="true"/>
+            </ScrollView>
+        </LinearLayout>
+
+        <!-- ============ CARD: MAVLINK MONITOR (diagnóstico) ============ -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:text="@string/open_log"
-            android:textColor="@color/text_primary"
-            android:background="@drawable/btn_secondary"
-            android:textAllCaps="false"
-            android:stateListAnimator="@null"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="12dp"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_monitor"
+                android:textSize="10sp"
+                android:letterSpacing="0.18"
+                android:textColor="@color/text_tertiary"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <Switch
+                    android:id="@+id/switchMonitor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/monitor_enable_label"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/monitor_port_label"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"/>
+
+                <EditText
+                    android:id="@+id/etMonitorPort"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLines="1"
+                    android:text="14445"
+                    android:background="@drawable/bg_input"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_tertiary"
+                    android:textSize="14sp"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnOpenMonitor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/monitor_open_button"
+                android:textColor="@color/text_secondary"
+                android:textAllCaps="false"
+                android:background="@drawable/btn_subtle"
+                android:minHeight="0dp"
+                android:stateListAnimator="@null"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"/>
+        </LinearLayout>
+
     </LinearLayout>
 </ScrollView>

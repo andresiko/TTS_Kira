@@ -16,3 +16,8 @@ Thumbs.db
 gradle/wrapper/gradle-wrapper.jar
 gradlew
 gradlew.bat
+
+# Local MAVLink capture logs used for analysis (not part of the app)
+borrar_Logs/
+*.tlog
+*.rlog
