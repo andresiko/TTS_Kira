@@ -56,6 +56,7 @@ class NtripMavlinkService : Service() {
         // Bubble tuning
         private const val GPS_STALE_MS = 5000L   // fix/h_acc go grey if the forward stops
         private const val AGE_RED_S = 12         // #233 age that saturates to red
+        private const val FORWARD_STALE_MS = 3000L // link dot turns solid red after this with no telemetry
         private const val ARROW_UP = "↑"           // up arrow
         private const val TARGET = "🎯"       // bullseye emoji
         private const val DASH = "—"               // em dash
@@ -108,13 +109,19 @@ class NtripMavlinkService : Service() {
     @Volatile private var lastGpsRawMs = 0L     // last GPS_RAW_INT seen (staleness guard)
     @Volatile private var fixType = 0           // GPS_RAW_INT.fix_type
     @Volatile private var hAccMm: Long? = null  // GPS_RAW_INT.h_acc (mm), null if not reported
+    @Volatile private var lastForwardMs = 0L    // last packet on the forward/FC socket (link dot)
 
     private val colorMuted = 0xFF9CA3AF.toInt()
     private val bubbleBg by lazy { GradientDrawable().apply { cornerRadius = dp(14).toFloat() } }
+    private var dot: View? = null
+    private var blinkOn = true
+    private val dotBg by lazy {
+        GradientDrawable().apply { shape = GradientDrawable.OVAL; setStroke(dp(1), 0x55000000) }
+    }
     private val bubbleTick = object : Runnable {
         override fun run() {
             renderBubble()
-            if (running.get()) mainHandler.postDelayed(this, 1000L)
+            if (running.get()) mainHandler.postDelayed(this, 500L)  // 500ms → ~1 Hz dot blink
         }
     }
 
@@ -315,6 +322,13 @@ class NtripMavlinkService : Service() {
             tvAcc?.text = "$TARGET $DASH"
             tvAcc?.setTextColor(colorMuted)
         }
+
+        // Forward-link dot: blinks green while telemetry flows, solid red when
+        // nothing has arrived for FORWARD_STALE_MS (so a frozen bubble is obvious).
+        val linkFresh = lastForwardMs > 0 && (now - lastForwardMs) <= FORWARD_STALE_MS
+        blinkOn = !blinkOn
+        dotBg.setColor(if (linkFresh) 0xFF22C55E.toInt() else 0xFFEF4444.toInt())
+        dot?.alpha = if (linkFresh && !blinkOn) 0.2f else 1f
     }
 
     private fun fixLabel(fix: Int): String = when (fix) {
@@ -402,12 +416,16 @@ class NtripMavlinkService : Service() {
             addView(up)
             addView(acc)
         }
+        val dotView = View(this).apply { background = dotBg }
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(14), dp(9), dp(12), dp(9))
             elevation = 12f
             background = bubbleBg
+            addView(dotView, LinearLayout.LayoutParams(dp(10), dp(10)).apply {
+                marginEnd = dp(9); gravity = Gravity.CENTER_VERTICAL
+            })
             addView(state, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -431,6 +449,7 @@ class NtripMavlinkService : Service() {
         }
         attachDragHandler(root, params)
         bubbleRoot = root
+        dot = dotView
         tvState = state
         tvUp = up
         tvAcc = acc
@@ -589,6 +608,7 @@ class NtripMavlinkService : Service() {
             }
             try {
                 sock.receive(pkt)
+                lastForwardMs = System.currentTimeMillis()
                 val raw = buf.copyOf(pkt.length)
                 try { MonitorState.ingest(raw) } catch (_: Exception) {}
                 MavlinkHelper.parsePosition(raw)?.let { onDronePosition(it) }
@@ -619,6 +639,7 @@ class NtripMavlinkService : Service() {
             while (running.get()) {
                 try {
                     udpSocket!!.receive(pkt)
+                    lastForwardMs = System.currentTimeMillis()
                     val raw = buf.copyOf(pkt.length)
 
                     // Monitor tap only when it targets the FC port; otherwise the
