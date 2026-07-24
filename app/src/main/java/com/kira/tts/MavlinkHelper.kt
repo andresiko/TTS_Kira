@@ -11,6 +11,7 @@ object MavlinkHelper {
     private const val MAVLINK2_STX = 0xFD.toByte()
     private const val MSG_ID_HEARTBEAT = 0
     private const val MSG_ID_GLOBAL_POSITION_INT = 33
+    private const val MSG_ID_GPS_RAW_INT = 24
     private const val MSG_ID_GPS_RTCM_DATA = 233
     private const val MAX_RTCM_DATA = 180
     private const val MAV_TYPE_GCS = 6
@@ -92,6 +93,69 @@ object MavlinkHelper {
         val lonDeg = lon / 1e7
         if (latDeg < -90.0 || latDeg > 90.0 || lonDeg < -180.0 || lonDeg > 180.0) return null
         return DronePosition(latDeg, lonDeg, alt / 1000.0)
+    }
+
+    data class GpsRaw(
+        val fixType: Int,
+        val hAccMm: Long?,   // horizontal accuracy (mm); null if not reported
+        val satellites: Int
+    )
+
+    /** Scans for GPS_RAW_INT (#24) and returns fix_type + h_acc from the last one. */
+    fun parseGpsRaw(data: ByteArray): GpsRaw? {
+        var i = 0
+        var result: GpsRaw? = null
+        while (i < data.size) {
+            val b = data[i]
+            // ---- MAVLink 1 ----
+            if (b == MAVLINK_STX && i + 8 <= data.size) {
+                val len = data[i + 1].toInt() and 0xFF
+                if (i + 6 + len + 2 > data.size) break
+                val msgId = data[i + 5].toInt() and 0xFF
+                if (msgId == MSG_ID_GPS_RAW_INT) {
+                    result = decodeGpsRaw(data, i + 6, len) ?: result
+                }
+                i += 6 + len + 2
+                continue
+            }
+            // ---- MAVLink 2 ----
+            if (b == MAVLINK2_STX && i + 12 <= data.size) {
+                val len = data[i + 1].toInt() and 0xFF
+                val incompat = data[i + 2].toInt() and 0xFF
+                val msgId = (data[i + 7].toInt() and 0xFF) or
+                            ((data[i + 8].toInt() and 0xFF) shl 8) or
+                            ((data[i + 9].toInt() and 0xFF) shl 16)
+                val signatureLen = if (incompat and 0x01 != 0) 13 else 0
+                val totalSize = 10 + len + 2 + signatureLen
+                if (i + totalSize > data.size) break
+                if (msgId == MSG_ID_GPS_RAW_INT) {
+                    result = decodeGpsRaw(data, i + 10, len) ?: result
+                }
+                i += totalSize
+                continue
+            }
+            i++
+        }
+        return result
+    }
+
+    /**
+     * GPS_RAW_INT payload (LE): 0 time_usec(8) 8 lat 12 lon 16 alt 20 eph 22 epv
+     * 24 vel 26 cog 28 fix_type 29 sats  | ext: 30 alt_ellipsoid 34 h_acc 38 v_acc.
+     * MAVLink2 may truncate trailing zero bytes, so read defensively by length.
+     * h_acc uses 0 / UINT32_MAX as "unknown".
+     */
+    private fun decodeGpsRaw(data: ByteArray, payloadStart: Int, len: Int): GpsRaw? {
+        val fixType = if (len > 28) data[payloadStart + 28].toInt() and 0xFF else 0
+        val sats    = if (len > 29) data[payloadStart + 29].toInt() and 0xFF else 0
+        val hAcc: Long? = if (len >= 38) {
+            val v = (data[payloadStart + 34].toLong() and 0xFFL) or
+                    ((data[payloadStart + 35].toLong() and 0xFFL) shl 8) or
+                    ((data[payloadStart + 36].toLong() and 0xFFL) shl 16) or
+                    ((data[payloadStart + 37].toLong() and 0xFFL) shl 24)
+            if (v == 0L || v == 0xFFFFFFFFL) null else v
+        } else null
+        return GpsRaw(fixType, hAcc, sats)
     }
 
     fun hasMavlinkFrames(data: ByteArray): Boolean {

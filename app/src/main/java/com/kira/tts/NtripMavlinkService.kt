@@ -10,6 +10,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -18,7 +19,9 @@ import android.provider.Settings
 import android.util.Base64
 import android.view.Gravity
 import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -29,8 +32,10 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
+import kotlin.math.ln
 
 class NtripMavlinkService : Service() {
 
@@ -47,6 +52,13 @@ class NtripMavlinkService : Service() {
 
         private const val CHANNEL_ID = "ntrip_bridge"
         private const val NOTIF_ID = 7423
+
+        // Bubble tuning
+        private const val GPS_STALE_MS = 5000L   // fix/h_acc go grey if the forward stops
+        private const val AGE_RED_S = 12         // #233 age that saturates to red
+        private const val ARROW_UP = "↑"           // up arrow
+        private const val TARGET = "🎯"       // bullseye emoji
+        private const val DASH = "—"               // em dash
 
         @Volatile var isRunning: Boolean = false
             private set
@@ -82,11 +94,31 @@ class NtripMavlinkService : Service() {
     private val rtcmTimeoutMs = 10000L
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var bubbleView: TextView? = null
+    private var bubbleRoot: LinearLayout? = null
+    private var tvState: TextView? = null
+    private var tvUp: TextView? = null
+    private var tvAcc: TextView? = null
     private var bubbleParams: WindowManager.LayoutParams? = null
     private var windowManager: WindowManager? = null
     @Volatile private var bubbleDismissed = false
     private var bubbleAdded = false
+
+    // Live telemetry powering the bubble (all fed from the forwarded stream).
+    @Volatile private var lastRtcmSentMs = 0L   // last GPS_RTCM_DATA #233 pushed to the drone
+    @Volatile private var lastGpsRawMs = 0L     // last GPS_RAW_INT seen (staleness guard)
+    @Volatile private var fixType = 0           // GPS_RAW_INT.fix_type
+    @Volatile private var hAccMm: Long? = null  // GPS_RAW_INT.h_acc (mm), null if not reported
+
+    private val colorMuted = 0xFF9CA3AF.toInt()
+    private val bubbleBg by lazy { GradientDrawable().apply { cornerRadius = dp(14).toFloat() } }
+    private val bubbleTick = object : Runnable {
+        override fun run() {
+            renderBubble()
+            if (running.get()) mainHandler.postDelayed(this, 1000L)
+        }
+    }
+
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
     override fun onCreate() {
         super.onCreate()
@@ -125,7 +157,7 @@ class NtripMavlinkService : Service() {
                 checks = StatusChecks()
                 startForeground(NOTIF_ID, buildNotification(getString(R.string.notification_connecting_caster), false))
                 bubbleDismissed = false
-                showBubble(false)
+                showBubble()
                 isRunning = true
                 startBridge()
                 return START_STICKY
@@ -139,6 +171,7 @@ class NtripMavlinkService : Service() {
 
     override fun onDestroy() {
         stopBridge()
+        mainHandler.removeCallbacks(bubbleTick)
         removeBubble()
         isRunning = false
         super.onDestroy()
@@ -219,20 +252,15 @@ class NtripMavlinkService : Service() {
     // Overlay bubble
     // -------------------------------------------------------------------------
 
-    private fun showBubble(rtkOk: Boolean) {
+    private fun showBubble() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { showBubble(rtkOk) }
+            mainHandler.post { showBubble() }
             return
         }
         if (!Settings.canDrawOverlays(this)) return
         if (bubbleDismissed) return
 
-        val bgRes = if (rtkOk) R.drawable.bubble_ok else R.drawable.bubble_fail
-        val text = if (rtkOk) getString(R.string.bubble_fix) else getString(R.string.bubble_no_fix)
-
         val view = ensureBubbleView()
-        view.text = text
-        view.setBackgroundResource(bgRes)
 
         // Attach only if not already attached. The view is reused for the whole
         // service lifetime, so addView can never run twice â†’ a single bubble.
@@ -243,22 +271,153 @@ class NtripMavlinkService : Service() {
             } catch (_: Exception) { /* already added; ignore */ }
             bubbleAdded = true
         }
+        renderBubble()
+        // Single self-rescheduling ticker so the "seconds since" counters keep
+        // climbing even when no packets arrive (that is the whole point).
+        mainHandler.removeCallbacks(bubbleTick)
+        mainHandler.post(bubbleTick)
     }
 
-    /** Lazily builds the single, reusable bubble view + params. */
-    private fun ensureBubbleView(): TextView {
-        bubbleView?.let { return it }
-        val density = resources.displayMetrics.density
-        fun dp(v: Int) = (v * density).toInt()
+    /**
+     * Repaints the three bubble readouts from live telemetry:
+     *  left   : RTK state from GPS_RAW_INT.fix_type, tinting the whole bubble.
+     *  up     : seconds since the last GPS_RTCM_DATA #233 (4G/caster thermometer).
+     *  target : h_acc positioning quality. Up/target grade green->red on their own.
+     * fix_type / h_acc go grey when the forwarded stream stops (staleness guard).
+     */
+    private fun renderBubble() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { renderBubble() }
+            return
+        }
+        if (!bubbleAdded) return
+        val now = System.currentTimeMillis()
+        val gpsFresh = lastGpsRawMs > 0 && (now - lastGpsRawMs) <= GPS_STALE_MS
+        val fix = if (gpsFresh) fixType else -1
+
+        tvState?.text = fixLabel(fix)
+        bubbleBg.setColor(fixColor(fix))
+
+        if (lastRtcmSentMs > 0) {
+            val sec = ((now - lastRtcmSentMs) / 1000L).toInt()
+            tvUp?.text = "$ARROW_UP ${sec}s"
+            tvUp?.setTextColor(ageColor(sec))
+        } else {
+            tvUp?.text = "$ARROW_UP $DASH"
+            tvUp?.setTextColor(colorMuted)
+        }
+
+        val acc = if (gpsFresh) hAccMm else null
+        if (acc != null) {
+            tvAcc?.text = "$TARGET ${formatAcc(acc)}"
+            tvAcc?.setTextColor(accColor(acc))
+        } else {
+            tvAcc?.text = "$TARGET $DASH"
+            tvAcc?.setTextColor(colorMuted)
+        }
+    }
+
+    private fun fixLabel(fix: Int): String = when (fix) {
+        6 -> "RTK FIX"
+        5 -> "RTK FLOAT"
+        4 -> "DGPS"
+        3 -> "3D"
+        2 -> "2D"
+        0, 1 -> "NO FIX"
+        else -> DASH
+    }
+
+    private fun fixColor(fix: Int): Int = when {
+        fix == 6 -> 0xFF22C55E.toInt()    // RTK Fixed - green
+        fix == 5 -> 0xFFF59E0B.toInt()    // RTK Float - amber
+        fix == 4 -> 0xFFF97316.toInt()    // DGPS - orange
+        fix in 0..3 -> 0xFFEF4444.toInt() // 2D/3D/no fix - red
+        else -> 0xFF6B7280.toInt()        // stale / unknown - grey
+    }
+
+    /** Seconds since last #233: green at 0 s, graded to red at AGE_RED_S. */
+    private fun ageColor(sec: Int): Int =
+        gradeColor((sec.toFloat() / AGE_RED_S).coerceIn(0f, 1f))
+
+    /** h_acc: green at <=3 cm, graded on a log scale to red at >=1 m. */
+    private fun accColor(mm: Long): Int {
+        val meters = (mm / 1000.0).coerceAtLeast(0.001)
+        val t = ((ln(meters) - ln(0.03)) / (ln(1.0) - ln(0.03))).coerceIn(0.0, 1.0)
+        return gradeColor(t.toFloat())
+    }
+
+    /** Linear green -> amber -> red gradient for t in [0,1]. */
+    private fun gradeColor(t: Float): Int {
+        val green = intArrayOf(0x22, 0xC5, 0x5E)
+        val amber = intArrayOf(0xF5, 0x9E, 0x0B)
+        val red   = intArrayOf(0xEF, 0x44, 0x44)
+        val a: IntArray; val b: IntArray; val u: Float
+        if (t < 0.5f) { a = green; b = amber; u = t / 0.5f }
+        else { a = amber; b = red; u = (t - 0.5f) / 0.5f }
+        val r  = (a[0] + (b[0] - a[0]) * u).toInt()
+        val g  = (a[1] + (b[1] - a[1]) * u).toInt()
+        val bl = (a[2] + (b[2] - a[2]) * u).toInt()
+        return (0xFF shl 24) or (r shl 16) or (g shl 8) or bl
+    }
+
+    private fun formatAcc(mm: Long): String {
+        val meters = mm / 1000.0
+        return when {
+            meters < 0.10 -> String.format(Locale.US, "%.1f cm", meters * 100)
+            meters < 1.0  -> String.format(Locale.US, "%.0f cm", meters * 100)
+            else          -> String.format(Locale.US, "%.2f m", meters)
+        }
+    }
+
+    /** Lazily builds the single, reusable 3-readout bubble (reused for the lifetime). */
+    private fun ensureBubbleView(): LinearLayout {
+        bubbleRoot?.let { return it }
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val view = TextView(this).apply {
-            textSize = 13f
+
+        val state = TextView(this).apply {
+            textSize = 15f
             setTextColor(Color.WHITE)
             setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.06f
-            setPadding(dp(14), dp(8), dp(14), dp(8))
-            elevation = 12f
+            letterSpacing = 0.04f
+            setShadowLayer(4f, 0f, 1f, 0x99000000.toInt())
         }
+        val up = TextView(this).apply {
+            textSize = 11f
+            setTypeface(typeface, Typeface.BOLD)
+            gravity = Gravity.END
+        }
+        val acc = TextView(this).apply {
+            textSize = 11f
+            setTypeface(typeface, Typeface.BOLD)
+            gravity = Gravity.END
+        }
+        val rightCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.END
+            setPadding(dp(7), dp(3), dp(7), dp(3))
+            background = GradientDrawable().apply {
+                cornerRadius = dp(8).toFloat()
+                setColor(0x59000000)   // translucent dark chip so tinted text stays legible
+            }
+            addView(up)
+            addView(acc)
+        }
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(14), dp(9), dp(12), dp(9))
+            elevation = 12f
+            background = bubbleBg
+            addView(state, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { gravity = Gravity.CENTER_VERTICAL })
+            addView(rightCol, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginStart = dp(12); gravity = Gravity.CENTER_VERTICAL })
+        }
+
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -270,15 +429,16 @@ class NtripMavlinkService : Service() {
             gravity = Gravity.TOP or Gravity.START
             x = dp(16); y = dp(48)
         }
-        attachDragHandler(view, params)
-        bubbleView = view
+        attachDragHandler(root, params)
+        bubbleRoot = root
+        tvState = state
+        tvUp = up
+        tvAcc = acc
         bubbleParams = params
-        return view
+        return root
     }
 
-    private fun attachDragHandler(view: TextView, params: WindowManager.LayoutParams) {
-        val density = resources.displayMetrics.density
-        fun dp(v: Int) = (v * density).toInt()
+    private fun attachDragHandler(view: View, params: WindowManager.LayoutParams) {
         val screenW = resources.displayMetrics.widthPixels
         val dismissTop = dp(110)       // top band that triggers removal
         val dismissRadiusX = dp(130)   // horizontal tolerance around screen center
@@ -333,7 +493,7 @@ class NtripMavlinkService : Service() {
             mainHandler.post { removeBubble() }
             return
         }
-        val view = bubbleView ?: return
+        val view = bubbleRoot ?: return
         if (bubbleAdded) {
             try { windowManager?.removeView(view) } catch (_: Exception) {}
             bubbleAdded = false
@@ -376,6 +536,13 @@ class NtripMavlinkService : Service() {
             centerDistanceKm = computeCenterDistKm(pos)
         )
         publishChecks()
+    }
+
+    /** Updates fix_type + h_acc from the forwarded GPS_RAW_INT (#24). */
+    private fun onGpsRaw(g: MavlinkHelper.GpsRaw) {
+        lastGpsRawMs = System.currentTimeMillis()
+        fixType = g.fixType
+        if (g.hAccMm != null) hAccMm = g.hAccMm
     }
 
     /**
@@ -425,6 +592,7 @@ class NtripMavlinkService : Service() {
                 val raw = buf.copyOf(pkt.length)
                 try { MonitorState.ingest(raw) } catch (_: Exception) {}
                 MavlinkHelper.parsePosition(raw)?.let { onDronePosition(it) }
+                MavlinkHelper.parseGpsRaw(raw)?.let { onGpsRaw(it) }
             } catch (_: java.net.SocketTimeoutException) {
             } catch (_: Exception) {
                 closeMonitorSocket()
@@ -483,6 +651,7 @@ class NtripMavlinkService : Service() {
                     }
 
                     MavlinkHelper.parsePosition(raw)?.let { onDronePosition(it) }
+                    MavlinkHelper.parseGpsRaw(raw)?.let { onGpsRaw(it) }
                 } catch (_: java.net.SocketTimeoutException) { /* normal */ }
 
                 // Watchdog: if >10s without RTCM, mark sending as stopped
@@ -599,6 +768,7 @@ class NtripMavlinkService : Service() {
                     udpSocket?.send(pkt)
                     mavMsgsTotal++
                 }
+                if (msgs.isNotEmpty()) lastRtcmSentMs = System.currentTimeMillis()
 
                 val pos = dronePos
                 checks = checks.copy(
@@ -680,9 +850,7 @@ class NtripMavlinkService : Service() {
 
     private fun publishChecks() {
         BridgeState.publishChecks(checks)
-        // Green bubble if we have initial position and are sending RTCM right now
-        val rtkOk = everHadPosition && checks.mavlinkSending == CheckState.OK
-        showBubble(rtkOk)
+        showBubble()
         updateNotification()
     }
 
