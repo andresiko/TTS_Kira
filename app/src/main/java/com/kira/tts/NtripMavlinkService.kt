@@ -57,9 +57,9 @@ class NtripMavlinkService : Service() {
         private const val GPS_STALE_MS = 5000L   // fix/h_acc go grey if the forward stops
         private const val AGE_RED_S = 12         // #233 age that saturates to red
         private const val FORWARD_STALE_MS = 3000L // link dot turns solid red after this with no telemetry
-        private const val ARROW_UP = "↑"           // up arrow
-        private const val TARGET = "🎯"       // bullseye emoji
-        private const val DASH = "—"               // em dash
+        private const val ARROW_UP = "\u2191"           // up arrow
+        private const val TARGET = "\uD83C\uDFAF"       // bullseye emoji
+        private const val DASH = "\u2014"               // em dash
 
         @Volatile var isRunning: Boolean = false
             private set
@@ -121,7 +121,7 @@ class NtripMavlinkService : Service() {
     private val bubbleTick = object : Runnable {
         override fun run() {
             renderBubble()
-            if (running.get()) mainHandler.postDelayed(this, 500L)  // 500ms → ~1 Hz dot blink
+            if (running.get()) mainHandler.postDelayed(this, 500L)  // 500ms \u2192 ~1 Hz dot blink
         }
     }
 
@@ -392,7 +392,7 @@ class NtripMavlinkService : Service() {
             textSize = 15f
             setTextColor(Color.WHITE)
             setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.04f
+            letterSpacing = 0.02f
             setShadowLayer(4f, 0f, 1f, 0x99000000.toInt())
         }
         val up = TextView(this).apply {
@@ -408,7 +408,7 @@ class NtripMavlinkService : Service() {
         val rightCol = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.END
-            setPadding(dp(7), dp(3), dp(7), dp(3))
+            setPadding(dp(5), dp(2), dp(5), dp(2))
             background = GradientDrawable().apply {
                 cornerRadius = dp(8).toFloat()
                 setColor(0x59000000)   // translucent dark chip so tinted text stays legible
@@ -420,11 +420,11 @@ class NtripMavlinkService : Service() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(9), dp(12), dp(9))
+            setPadding(dp(9), dp(4), dp(9), dp(4))
             elevation = 12f
             background = bubbleBg
-            addView(dotView, LinearLayout.LayoutParams(dp(10), dp(10)).apply {
-                marginEnd = dp(9); gravity = Gravity.CENTER_VERTICAL
+            addView(dotView, LinearLayout.LayoutParams(dp(9), dp(9)).apply {
+                marginEnd = dp(6); gravity = Gravity.CENTER_VERTICAL
             })
             addView(state, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -433,7 +433,7 @@ class NtripMavlinkService : Service() {
             addView(rightCol, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { marginStart = dp(12); gravity = Gravity.CENTER_VERTICAL })
+            ).apply { marginStart = dp(7); gravity = Gravity.CENTER_VERTICAL })
         }
 
         val params = WindowManager.LayoutParams(

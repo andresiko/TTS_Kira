@@ -97,7 +97,7 @@ class MonitorActivity : AppCompatActivity(), MonitorState.Listener {
             R.string.monitor_health_fmt,
             health.totalFrames,
             health.lossPercent,
-            if (health.heartbeatIntervalMs > 0) "${health.heartbeatIntervalMs} ms" else "â€”",
+            if (health.heartbeatIntervalMs > 0) "${health.heartbeatIntervalMs} ms" else "\u2014",
             health.framesPerSec,
             health.distinctMsgIds
         )

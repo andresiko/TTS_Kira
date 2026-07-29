@@ -367,7 +367,7 @@ class MainActivity : AppCompatActivity(), BridgeState.Listener {
     private fun showMountpointsDialog(list: List<MountpointInfo>, cfg: NtripConfig) {
         val labels = list.map { mp ->
             val tag = mp.type.ifBlank { mp.format }
-            "${mp.name}  â€”  $tag"
+            "${mp.name}  \u2014  $tag"
         }.toTypedArray()
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.dialog_mountpoints_title, cfg.host))
@@ -477,12 +477,12 @@ class MainActivity : AppCompatActivity(), BridgeState.Listener {
     }
 
     private fun buildConfigSummary(): String {
-        val ip = etFcIp.text.toString().trim().ifEmpty { "â€”" }
-        val port = etFcPort.text.toString().trim().ifEmpty { "â€”" }
+        val ip = etFcIp.text.toString().trim().ifEmpty { "\u2014" }
+        val port = etFcPort.text.toString().trim().ifEmpty { "\u2014" }
         val mp = try {
-            NtripConfig.parse(etNtrip.text.toString()).mountpoint.ifEmpty { "â€”" }
-        } catch (_: Exception) { "â€”" }
-        return "$ip:$port Â· $mp"
+            NtripConfig.parse(etNtrip.text.toString()).mountpoint.ifEmpty { "\u2014" }
+        } catch (_: Exception) { "\u2014" }
+        return "$ip:$port \u00b7 $mp"
     }
 
     // -------------------------------------------------------------------------
@@ -528,7 +528,7 @@ class MainActivity : AppCompatActivity(), BridgeState.Listener {
         val msg = StringBuilder()
         problems.forEachIndexed { i, (title, hint) ->
             if (i > 0) msg.append("\n\n")
-            msg.append("â€¢ ").append(title).append("\n").append(hint)
+            msg.append("\u2022 ").append(title).append("\n").append(hint)
         }
         AlertDialog.Builder(this)
             .setTitle(R.string.dialog_diagnostic_title)
@@ -556,7 +556,7 @@ class MainActivity : AppCompatActivity(), BridgeState.Listener {
 
         if (s.rtcmReceiving == CheckState.OK) {
             val baseStr = s.baseDistanceKm?.let { d ->
-                val typePart = s.mountpointType?.let { "$it Â· " } ?: ""
+                val typePart = s.mountpointType?.let { "$it \u00b7 " } ?: ""
                 if (d < 1.0) getString(R.string.rtcm_base_distance_m, typePart, (d * 1000).toInt())
                 else getString(R.string.rtcm_base_distance_km, typePart, d)
             } ?: s.mountpointType?.let { getString(R.string.rtcm_mountpoint_type, it) } ?: ""
@@ -587,16 +587,16 @@ class MainActivity : AppCompatActivity(), BridgeState.Listener {
         val ok      = ContextCompat.getColor(this, R.color.success)
         val fail    = ContextCompat.getColor(this, R.color.danger)
         when (state) {
-            CheckState.PENDING -> { tv.text = "â—‹"; tv.setTextColor(pending) }
-            CheckState.OK      -> { tv.text = "â—"; tv.setTextColor(ok) }
-            CheckState.FAIL    -> { tv.text = "âœ•"; tv.setTextColor(fail) }
+            CheckState.PENDING -> { tv.text = "\u25cb"; tv.setTextColor(pending) }
+            CheckState.OK      -> { tv.text = "\u25cf"; tv.setTextColor(ok) }
+            CheckState.FAIL    -> { tv.text = "\u2715"; tv.setTextColor(fail) }
         }
     }
 
     private fun resetChecksUi() {
         val pending = ContextCompat.getColor(this, R.color.text_tertiary)
         listOf(checkInternet, checkNtrip, checkRtcm, checkPosition, checkMavlink).forEach {
-            it.text = "â—‹"; it.setTextColor(pending)
+            it.text = "\u25cb"; it.setTextColor(pending)
         }
         labelRtcm.text     = getString(R.string.status_rtcm)
         labelPosition.text = getString(R.string.status_initial_position)

@@ -130,7 +130,7 @@ object MsgCatalog {
             4 -> "FAILED"; 5 -> "IN_PROGRESS"; 6 -> "CANCELLED"; else -> "result=$result"
         }
         val sev = if (result in 2..4) Severity.WARNING else Severity.OK
-        return Decoded(n, "${MavCmd.name(cmd)} â†’ $resultName", sev)
+        return Decoded(n, "${MavCmd.name(cmd)} \u2192 $resultName", sev)
     }
 
     private fun gpsRtk(f: MavlinkScan.Frame, n: String): Decoded {
