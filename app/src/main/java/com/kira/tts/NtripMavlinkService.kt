@@ -116,7 +116,7 @@ class NtripMavlinkService : Service() {
     private var dot: View? = null
     private var blinkOn = true
     private val dotBg by lazy {
-        GradientDrawable().apply { shape = GradientDrawable.OVAL; setStroke(dp(1), 0x55000000) }
+        GradientDrawable().apply { shape = GradientDrawable.OVAL; setStroke(dp(1), 0xCCFFFFFF.toInt()) }
     }
     private val bubbleTick = object : Runnable {
         override fun run() {
@@ -314,21 +314,28 @@ class NtripMavlinkService : Service() {
             tvUp?.setTextColor(colorMuted)
         }
 
+        // No icon: the "cm"/"m" unit already reads as positioning accuracy.
         val acc = if (gpsFresh) hAccMm else null
         if (acc != null) {
-            tvAcc?.text = "$TARGET ${formatAcc(acc)}"
+            tvAcc?.text = formatAcc(acc)
             tvAcc?.setTextColor(accColor(acc))
         } else {
-            tvAcc?.text = "$TARGET $DASH"
+            tvAcc?.text = DASH
             tvAcc?.setTextColor(colorMuted)
         }
 
-        // Forward-link dot: blinks green while telemetry flows, solid red when
-        // nothing has arrived for FORWARD_STALE_MS (so a frozen bubble is obvious).
+        // Forward-link LED: high-contrast blink (bright green <-> dark) while
+        // telemetry flows; solid red when nothing has arrived for FORWARD_STALE_MS.
         val linkFresh = lastForwardMs > 0 && (now - lastForwardMs) <= FORWARD_STALE_MS
         blinkOn = !blinkOn
-        dotBg.setColor(if (linkFresh) 0xFF22C55E.toInt() else 0xFFEF4444.toInt())
-        dot?.alpha = if (linkFresh && !blinkOn) 0.2f else 1f
+        dotBg.setColor(
+            when {
+                !linkFresh -> 0xFFEF4444.toInt()  // solid red = link lost
+                blinkOn    -> 0xFF4ADE80.toInt()  // LED on  = bright green
+                else       -> 0xFF14532D.toInt()  // LED off = dark green
+            }
+        )
+        dot?.alpha = 1f
     }
 
     private fun fixLabel(fix: Int): String = when (fix) {
@@ -395,6 +402,19 @@ class NtripMavlinkService : Service() {
             letterSpacing = 0.02f
             setShadowLayer(4f, 0f, 1f, 0x99000000.toInt())
         }
+        val dotView = View(this).apply { background = dotBg }
+        // LED sits centered UNDER the RTK state so it costs no horizontal room.
+        val leftCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            addView(state, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ))
+            addView(dotView, LinearLayout.LayoutParams(dp(10), dp(10)).apply {
+                topMargin = dp(3)
+            })
+        }
         val up = TextView(this).apply {
             textSize = 11f
             setTypeface(typeface, Typeface.BOLD)
@@ -408,32 +428,28 @@ class NtripMavlinkService : Service() {
         val rightCol = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.END
-            setPadding(dp(5), dp(2), dp(5), dp(2))
+            setPadding(dp(4), dp(2), dp(4), dp(2))
             background = GradientDrawable().apply {
-                cornerRadius = dp(8).toFloat()
+                cornerRadius = dp(7).toFloat()
                 setColor(0x59000000)   // translucent dark chip so tinted text stays legible
             }
             addView(up)
             addView(acc)
         }
-        val dotView = View(this).apply { background = dotBg }
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(9), dp(4), dp(9), dp(4))
+            setPadding(dp(7), dp(3), dp(7), dp(3))
             elevation = 12f
             background = bubbleBg
-            addView(dotView, LinearLayout.LayoutParams(dp(9), dp(9)).apply {
-                marginEnd = dp(6); gravity = Gravity.CENTER_VERTICAL
-            })
-            addView(state, LinearLayout.LayoutParams(
+            addView(leftCol, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { gravity = Gravity.CENTER_VERTICAL })
             addView(rightCol, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { marginStart = dp(7); gravity = Gravity.CENTER_VERTICAL })
+            ).apply { marginStart = dp(6); gravity = Gravity.CENTER_VERTICAL })
         }
 
         val params = WindowManager.LayoutParams(
@@ -461,7 +477,6 @@ class NtripMavlinkService : Service() {
         val screenW = resources.displayMetrics.widthPixels
         val dismissTop = dp(110)       // top band that triggers removal
         val dismissRadiusX = dp(130)   // horizontal tolerance around screen center
-        val homeX = dp(16); val homeY = dp(48)
         var initialX = 0; var initialY = 0
         var touchX = 0f; var touchY = 0f
         var moved = false
@@ -490,13 +505,9 @@ class NtripMavlinkService : Service() {
                 }
                 MotionEvent.ACTION_UP -> {
                     if (moved && inDismissZone()) {
-                        bubbleDismissed = true
-                        view.post {
-                            removeBubble()
-                            // Reset for a clean reappearance on the next connect.
-                            view.alpha = 1f
-                            params.x = homeX; params.y = homeY
-                        }
+                        // Dropping into the dismiss zone fully stops the service
+                        // (RTK bridge + notification + process), not just hides the bubble.
+                        view.post { stopEverything() }
                     } else {
                         view.alpha = 1f
                     }
@@ -529,6 +540,13 @@ class NtripMavlinkService : Service() {
         Thread { runUdpLoop() }.apply { isDaemon = true; start() }
         Thread { runNtripLoop() }.apply { isDaemon = true; start() }
         Thread { runMonitorLoop() }.apply { isDaemon = true; start() }
+    }
+
+    /** Full teardown: stop the bridge, drop the notification, kill the service. */
+    private fun stopEverything() {
+        stopBridge()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     private fun stopBridge() {
