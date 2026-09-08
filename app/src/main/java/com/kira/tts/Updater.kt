@@ -64,7 +64,7 @@ object Updater {
                 setRequestProperty("User-Agent", "TTS_Kira-updater")
             }
             if (conn.responseCode != 200) return null
-            conn.inputStream.use { input -> out.outputStream.use { input.copyTo(it) } }
+            conn.inputStream.use { input -> out.outputStream().use { input.copyTo(it) } }
             out
         } catch (_: Exception) {
             null
