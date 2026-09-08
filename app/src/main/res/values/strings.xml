@@ -112,4 +112,9 @@
     <string name="monitor_waiting">Waiting for MAVLink frames…</string>
     <string name="monitor_disabled_hint">Monitor is disabled. Enable it on the main screen.</string>
     <string name="monitor_health_fmt">Frames: %1$d · Loss: %2$.1f%% · HB: %3$s · %4$.0f msg/s · %5$d msg types</string>
+
+    <string name="crash_title">The app closed unexpectedly last time</string>
+    <string name="crash_share">Share</string>
+    <string name="crash_delete">Delete</string>
+    <string name="crash_none">No crash log</string>
 </resources>

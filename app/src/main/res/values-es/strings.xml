@@ -112,4 +112,9 @@
     <string name="monitor_waiting">Esperando tramas MAVLink…</string>
     <string name="monitor_disabled_hint">El monitor está desactivado. Actívalo en la pantalla principal.</string>
     <string name="monitor_health_fmt">Tramas: %1$d · Pérdida: %2$.1f%% · HB: %3$s · %4$.0f msg/s · %5$d tipos</string>
+
+    <string name="crash_title">La app se cerró inesperadamente la última vez</string>
+    <string name="crash_share">Compartir</string>
+    <string name="crash_delete">Borrar</string>
+    <string name="crash_none">Sin registro de errores</string>
 </resources>

@@ -121,6 +121,8 @@ class MainActivity : AppCompatActivity(), BridgeState.Listener {
             tvVersion.text = "v${pInfo.versionName}"
         } catch (_: Exception) {}
 
+        tvVersion.setOnLongClickListener { showCrashLog(); true }
+
         configHeader.setOnClickListener { toggleConfig() }
 
         btnConnect.setOnClickListener {
@@ -522,6 +524,29 @@ class MainActivity : AppCompatActivity(), BridgeState.Listener {
                 getString(R.string.diagnostic_no_drone_position_hint)
         }
         return out
+    }
+
+    /** Long-press the version pill to view / share / clear the last crash trace (if any). */
+    private fun showCrashLog() {
+        val trace = CrashLogger.read(this)
+        if (trace == null) {
+            Toast.makeText(this, R.string.crash_none, Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.crash_title)
+            .setMessage(trace)
+            .setPositiveButton(R.string.crash_share) { _, _ ->
+                val send = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "TTS_Kira crash")
+                    putExtra(Intent.EXTRA_TEXT, trace)
+                }
+                startActivity(Intent.createChooser(send, getString(R.string.crash_share)))
+            }
+            .setNeutralButton(R.string.crash_delete) { _, _ -> CrashLogger.clear(this) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun showDiagnosticDialog(problems: List<Pair<String, String>>) {
