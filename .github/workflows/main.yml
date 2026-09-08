@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -54,3 +56,12 @@ jobs:
           name: TTSKira-${{ steps.version.outputs.version_name }}
           path: app/build/outputs/apk/release/TTSKira-*.apk
           retention-days: 30
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${BUILD_NUMBER}" \
+            "app/build/outputs/apk/release/TTSKira-${VERSION_NAME}.apk" \
+            --title "${VERSION_NAME}" \
+            --notes "Automated build ${VERSION_NAME} (build #${BUILD_NUMBER})"

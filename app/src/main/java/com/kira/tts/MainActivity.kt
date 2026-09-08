@@ -21,6 +21,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import java.io.File
 
 class MainActivity : AppCompatActivity(), BridgeState.Listener {
 
@@ -122,6 +124,8 @@ class MainActivity : AppCompatActivity(), BridgeState.Listener {
         } catch (_: Exception) {}
 
         tvVersion.setOnLongClickListener { showCrashLog(); true }
+        tvVersion.setOnClickListener { checkForUpdate(manual = true) }
+        checkForUpdate(manual = false)
 
         configHeader.setOnClickListener { toggleConfig() }
 
@@ -547,6 +551,73 @@ class MainActivity : AppCompatActivity(), BridgeState.Listener {
             .setNeutralButton(R.string.crash_delete) { _, _ -> CrashLogger.clear(this) }
             .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    // ---- Self-update (public GitHub Releases) --------------------------------
+
+    private fun currentVersionCode(): Int = try {
+        @Suppress("DEPRECATION") packageManager.getPackageInfo(packageName, 0).versionCode
+    } catch (_: Exception) { 0 }
+
+    private fun checkForUpdate(manual: Boolean) {
+        if (manual) Toast.makeText(this, R.string.update_checking, Toast.LENGTH_SHORT).show()
+        Thread {
+            val rel = Updater.fetchLatest()
+            mainHandler.post {
+                if (isFinishing || isDestroyed) return@post
+                when {
+                    rel == null ->
+                        if (manual) Toast.makeText(this, R.string.update_check_failed, Toast.LENGTH_SHORT).show()
+                    rel.versionCode > currentVersionCode() -> promptUpdate(rel)
+                    else ->
+                        if (manual) Toast.makeText(this, R.string.update_none, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.apply { isDaemon = true }.start()
+    }
+
+    private fun promptUpdate(rel: Updater.Release) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.update_available_title)
+            .setMessage(getString(R.string.update_available_msg, rel.name))
+            .setPositiveButton(R.string.update_now) { _, _ -> downloadAndInstall(rel) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun downloadAndInstall(rel: Updater.Release) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+            Toast.makeText(this, R.string.update_perm_needed, Toast.LENGTH_LONG).show()
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName"))
+                )
+            } catch (_: Exception) {}
+            return
+        }
+        Toast.makeText(this, R.string.update_downloading, Toast.LENGTH_SHORT).show()
+        Thread {
+            val f = Updater.downloadApk(this, rel.apkUrl)
+            mainHandler.post {
+                if (isFinishing || isDestroyed) return@post
+                if (f == null) Toast.makeText(this, R.string.update_download_failed, Toast.LENGTH_LONG).show()
+                else installApk(f)
+            }
+        }.apply { isDaemon = true }.start()
+    }
+
+    private fun installApk(file: File) {
+        try {
+            val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+            startActivity(
+                Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "application/vnd.android.package-archive")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            )
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.update_download_failed, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun showDiagnosticDialog(problems: List<Pair<String, String>>) {

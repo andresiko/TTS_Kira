@@ -117,4 +117,14 @@
     <string name="crash_share">Compartir</string>
     <string name="crash_delete">Borrar</string>
     <string name="crash_none">Sin registro de errores</string>
+
+    <string name="update_checking">Buscando actualizaciones…</string>
+    <string name="update_check_failed">No se pudo comprobar la actualización</string>
+    <string name="update_none">Ya estás en la última versión</string>
+    <string name="update_available_title">Actualización disponible</string>
+    <string name="update_available_msg">Nueva versión: %1$s. ¿Descargar e instalar?</string>
+    <string name="update_now">Actualizar</string>
+    <string name="update_downloading">Descargando actualización…</string>
+    <string name="update_download_failed">Fallo al descargar la actualización</string>
+    <string name="update_perm_needed">Permite a TTS_Kira instalar apps y reinténtalo</string>
 </resources>
